@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.env
+# Data
+backend/data/
+f1_raw/
+# Mac
+.DS_Store
