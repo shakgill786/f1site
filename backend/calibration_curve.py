@@ -8,7 +8,7 @@ from sklearn.calibration import calibration_curve
 # 1️⃣ Paths
 BASE         = os.path.dirname(__file__)
 FEATURES_CSV = os.path.join(BASE, "data", "all_race_features_last5_and_current.csv")
-MODEL_PATH   = os.path.join(BASE, "model_f1.pkl")
+MODEL_PATH   = os.path.join(BASE, "model_f1_isotonic.pkl")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 2️⃣ Load data & model
@@ -37,7 +37,8 @@ probs = model.predict_proba(X_test)[:, 1]
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 5️⃣ Compute calibration curve
-frac_pos, mean_pred = calibration_curve(y_test, probs, n_bins=10)
+# use 5 bins instead of 10 to smooth out noise
+frac_pos, mean_pred = calibration_curve(y_test, probs, n_bins=5)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 6️⃣ Plot

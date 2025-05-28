@@ -1,3 +1,5 @@
+# backend/app_f1.py
+
 import os
 import joblib
 import pandas as pd
@@ -5,14 +7,14 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# ── 1) Load your calibrated multiclass F1 model
+# ── 1️⃣ Load your calibrated multiclass F1 model
 MODEL_PATH = os.path.join(
     os.path.dirname(__file__),
     "model_f1_multiclass_calibrated.pkl"
 )
 model = joblib.load(MODEL_PATH)
 
-# ── 2) Define expected features
+# ── 2️⃣ Define expected features
 NUMERIC_FEATS     = [
     "avg_finish_5",
     "podium_pct_5",
@@ -39,7 +41,7 @@ def predict():
     if missing:
         return jsonify(error=f"Missing required fields: {missing}"), 400
 
-    # ── 3) Build a single‐row DataFrame
+    # ── 3️⃣ Build a single-row DataFrame in the order the model expects
     row = {}
     try:
         for k in NUMERIC_FEATS:
@@ -51,11 +53,11 @@ def predict():
 
     X = pd.DataFrame([row])
 
-    # ── 4) Predict full 20‐way finish distribution
+    # ── 4️⃣ Predict the 1–20 finish distribution
     try:
         probs = model.predict_proba(X)[0]
-        # map back to 1‐based finishing positions
-        dist = { str(i+1): round(float(probs[i]), 4) for i in range(len(probs)) }
+        dist = { str(i+1): round(float(probs[i]), 4)
+                 for i in range(len(probs)) }
         return jsonify(position_probabilities=dist), 200
     except Exception as e:
         return jsonify(error=f"Prediction error: {e}"), 500
