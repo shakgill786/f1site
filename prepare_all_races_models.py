@@ -1,7 +1,6 @@
-# prepare_all_races_models.py
-
 import os
 from pathlib import Path
+
 import pandas as pd
 import joblib
 
@@ -13,31 +12,34 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.ensemble import RandomForestRegressor
 from xgboost import XGBRegressor
 
-# CONFIG
+# ─── CONFIG ─────────────────────────────────────────────────────────────────────
 ROOT        = Path(__file__).parent
-FEATURE_CSV = ROOT / "backend" / "data" / "all_races_with_weather_and_tyres.csv"
+FEATURE_CSV = ROOT / "backend" / "data" / "all_races_with_weather.csv"
 MODELS_DIR  = ROOT / "models"
 
-# LOAD enriched features
+# ─── LOAD DATA ──────────────────────────────────────────────────────────────────
 df = pd.read_csv(FEATURE_CSV, parse_dates=["raceDate"])
-df = df.dropna(subset=["position"])
+df = df.dropna(subset=["position"])  # ensure we have target
 
-# FEATURES & TARGET
+# ─── DEFINE FEATURES & TARGET ──────────────────────────────────────────────────
 NUM_FEATS = [
     "avg_finish_5","podium_pct_5","avg_grid_5",
-    "constructor_pts_5","last_year_pos"
+    "constructor_pts_5","last_year_pos",
+    "temp_avg_C","precip_mm","wind_kph","humidity_pct",
+    "rain_temp","month_sin","month_cos"
 ]
-CAT_FEATS = ["circuitId","starting_tyre"]
+CAT_FEATS = ["circuitId"]
+
 X = df[NUM_FEATS + CAT_FEATS]
 y = df["position"]
 
-# PREPROCESSOR: impute + one‐hot
+# ─── PREPROCESSOR: impute numerics & one-hot circuit ────────────────────────────
 preprocessor = ColumnTransformer([
     ("num", SimpleImputer(strategy="median"), NUM_FEATS),
     ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), CAT_FEATS),
 ])
 
-# RF Pipeline
+# ─── RF Pipeline ───────────────────────────────────────────────────────────────
 rf_pipe = Pipeline([
     ("pre", preprocessor),
     ("model", RandomForestRegressor(
@@ -50,7 +52,7 @@ rf_pipe = Pipeline([
     ))
 ])
 
-# XGB Pipeline
+# ─── XGB Pipeline ──────────────────────────────────────────────────────────────
 xgb_pipe = Pipeline([
     ("pre", preprocessor),
     ("model", XGBRegressor(
@@ -66,12 +68,12 @@ xgb_pipe = Pipeline([
     ))
 ])
 
-# TRAIN & SAVE
+# ─── TRAIN & SERIALIZE ─────────────────────────────────────────────────────────
 rf_pipe.fit(X, y)
 xgb_pipe.fit(X, y)
 
 MODELS_DIR.mkdir(exist_ok=True)
-joblib.dump(rf_pipe,  MODELS_DIR/"rf_pipeline.joblib")
-joblib.dump(xgb_pipe, MODELS_DIR/"xgb_pipeline.joblib")
+joblib.dump(rf_pipe,  MODELS_DIR / "rf_pipeline.joblib")
+joblib.dump(xgb_pipe, MODELS_DIR / "xgb_pipeline.joblib")
 
 print("✅ Pipelines saved to models/")

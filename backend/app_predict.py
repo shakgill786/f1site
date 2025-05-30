@@ -1,5 +1,3 @@
-# backend/app_predict.py
-
 import os
 import joblib
 import pandas as pd
@@ -21,15 +19,13 @@ NUM_FEATS = [
     "temp_avg_C","precip_mm","wind_kph","humidity_pct",
     "rain_temp","month_sin","month_cos"
 ]
-CAT_FEATS = ["circuitId","starting_tyre"]
+CAT_FEATS = ["circuitId"]
 EXPECTED  = NUM_FEATS + CAT_FEATS
 
-# ─── Health check ───────────────────────────────────────────────────────────────
 @app.route("/", methods=["GET"])
 def home():
     return "🏎️ F1 RF & XGB Prediction API is running!", 200
 
-# ─── Prediction endpoint ────────────────────────────────────────────────────────
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.get_json(force=True)
