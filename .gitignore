@@ -9,3 +9,8 @@ backend/data/
 f1_raw/
 # Mac
 .DS_Store
+# trained models
+/models/
+# any FastF1 or custom cache
+/f1_cache/
+
